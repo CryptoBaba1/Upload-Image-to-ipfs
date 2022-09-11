@@ -1,10 +1,11 @@
 import Head from "next/head";
 import styles from "../styles/Home.module.css";
 import Header from "../components/Header";
-import { useMoralis } from "react-moralis";
+import { useMoralis, useWeb3Contract } from "react-moralis";
 import { Button } from "web3uikit";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 const { Moralis } = require('moralis-v1');
+import { ABI } from "../constants/abi";
 
 const serverUrl = "https://egs00egygkwk.usemoralis.com:2053/server";
 const appId = "LuiXZF1VMTJMBgUKgZMySbFCssO5ew5lUrKhe6u8";
@@ -14,9 +15,33 @@ const supportedChains = ["80001", "4"];
 export default function Home() {
   const { isWeb3Enabled, chainId } = useMoralis();
   Moralis.start({ serverUrl, appId, masterKey });
+  let user = Moralis.User.current();
+
+  //State Hooks
+  const [nftPrice, setNFTPrice] = useState("0")
+  const [nftContract, setNFTContract] = useState("0")
 
   //constants for metadata
   let imageHash;
+  let metadataIPFSLink;
+  //Things for the Contracts
+
+  // const contractAddresss = "0x349cbbe7a3037dc5a475875faca4b4dbe4ac1e8d";
+
+  // //contractrs Running
+  // const { runContractFunction: safeMint } = useWeb3Contract({
+  //   abi: ABI,
+  //   contractAddress: contractAddresss, // specify the networkId
+  //   functionName: "safeMint",
+  //   params: {
+  //     to: user,
+  //     tokenId: 0,
+  //     uri: "https://ipfs.moralis.io:2053/ipfs/QmaUhGv6HRQSDRsv8rXSNU7EBwffg5h9YUT2ERr7KYyQRX"
+  //   },
+  // })
+
+
+
 
   // @ts-check
   const handleUpload = async (e) => {
@@ -43,14 +68,20 @@ export default function Home() {
       imageURI: imageHash
     }
     console.log(metadata);
-    console.log(metadata);
     const jsonFile = new Moralis.File("metadata.json", { base64: btoa(JSON.stringify(metadata)) });
     await jsonFile.saveIPFS();
 
     let metadataHash = jsonFile.hash();
-    console.log(jsonFile.ipfs());
+    metadataIPFSLink = jsonFile.ipfs()
+    console.log(metadataIPFSLink);
     console.log(metadataHash);
   }
+
+
+  // const handleSuccess = async (tx) => {
+  //   await tx.wait(1)
+  //   console.log(tx)
+  // }
 
   return (
     <div className={styles.container}>
@@ -89,6 +120,17 @@ export default function Home() {
                 onClick={() => { ClaimLand() }}
                 type="button"
                 text="Claim Land" />
+
+              {/* <Button
+                onClick={async () => {
+                  await Moralis.authenticate()
+                  await safeMint({
+                    onSuccess: handleSuccess,
+                    onError: (error) => console.log(error),
+                  })
+                }}
+                type="button"
+                text="Mint an LazyNFT" /> */}
 
             </div>
           ) : (
